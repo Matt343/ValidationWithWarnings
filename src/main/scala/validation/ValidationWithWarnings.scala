@@ -52,6 +52,11 @@ case class ValidationWithWarnings[E, +A] private[validation](private val validat
     new ValidationWithWarnings(validation +++ that.validation, warnings ++ that.warnings)
   }
 
+  def orElse[AA >: A](that: => ValidationWithWarnings[E, AA]) = validation match {
+    case Success(_) => this
+    case Failure(_) => new ValidationWithWarnings(that.validation, warnings ++ that.warnings)
+  }
+
   def toOption: Option[A] = validation.toOption
 
   def valueOr[AA >: A](function: NonEmptyList[E] => AA): AA = validation.valueOr(function)
