@@ -74,7 +74,7 @@ class ValidationWithWarningsTest extends FlatSpec with Matchers {
 
     val sum123 = v1 ++ v2 ++ v3
     sum123 match {
-      case ValidationWithWarnings(Failure(NonEmptyList("Error message")), Seq("Warning 1", "Warning 2", "Warning 3")) =>
+      case ValidationWithWarnings(Failure(errors), Seq("Warning 1", "Warning 2", "Warning 3")) => errors.head shouldEqual "Error message"
       case _ => fail
     }
 

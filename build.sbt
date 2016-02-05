@@ -2,6 +2,8 @@ name := "VWW"
 
 version := "1.0"
 
-libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.0"
+scalaVersion := "2.11.7"
 
-libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.0" % "test"
+libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.0"
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"

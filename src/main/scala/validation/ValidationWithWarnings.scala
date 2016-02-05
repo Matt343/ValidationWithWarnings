@@ -3,16 +3,16 @@ package pl.touk.util.validation
 import scalaz.Scalaz._
 import scalaz._
 
-case class ValidationWithWarnings[+E, +A] private[validation](private val validation: ValidationNel[E, A],
+case class ValidationWithWarnings[E, +A] private[validation](private val validation: ValidationNel[E, A],
                                                               warnings: Seq[E]) {
   import pl.touk.util.validation.Implicits._
 
-  def flatMap[EE >: E, U](function: A => ValidationWithWarnings[EE, U]): ValidationWithWarnings[EE, U] = {
+  def flatMap[U](function: A => ValidationWithWarnings[E, U]): ValidationWithWarnings[E, U] = {
     validation match {
       case Success(value) =>
         val newResult = function(value)
-        new ValidationWithWarnings(newResult.validation, warnings ++ newResult.warnings)
-      case Failure(errors) => new ValidationWithWarnings[EE, U](errors.fail, warnings)
+        new ValidationWithWarnings[E, U](newResult.validation, warnings ++ newResult.warnings)
+      case Failure(errors) => new ValidationWithWarnings[E, U](errors.failure[U], warnings)
     }
   }
 
@@ -27,11 +27,11 @@ case class ValidationWithWarnings[+E, +A] private[validation](private val valida
 
   def exists(f: A => Boolean): Boolean = validation.exists(f)
 
-  def mapWarnings[EE >: E](function: E => EE) = {
+  def mapWarnings(function: E => E) = {
     new ValidationWithWarnings(validation, warnings.map(function))
   }
 
-  def mapErrors[EE >: E](function: E => EE): ValidationWithWarnings[EE, A] = {
+  def mapErrors(function: E => E): ValidationWithWarnings[E, A] = {
     new ValidationWithWarnings(validation.leftMap(_.map(function)), warnings)
   }
 
@@ -48,7 +48,7 @@ case class ValidationWithWarnings[+E, +A] private[validation](private val valida
     }
   }
 
-  def ++[EE >: E, AA >: A : Semigroup](that: ValidationWithWarnings[EE, AA]) = {
+  def ++[AA >: A : Semigroup](that: ValidationWithWarnings[E, AA]) = {
     new ValidationWithWarnings(validation +++ that.validation, warnings ++ that.warnings)
   }
 
@@ -57,7 +57,7 @@ case class ValidationWithWarnings[+E, +A] private[validation](private val valida
   def valueOr[AA >: A](function: NonEmptyList[E] => AA): AA = validation.valueOr(function)
 
   def errors: Seq[E] = validation match {
-    case Failure(errors) => errors.list
+    case Failure(errors) => errors.list.toList
     case Success(_) => Seq()
   }
 
